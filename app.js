@@ -7,8 +7,8 @@ const port = parseInt(process.env.PORT, 10) || 3000
 const dev = process.env.NODE_ENV !== 'production'
 
 // ee stuff
-var ee = require('@google/earthengine');
-var privateKey = require('./privatekey.json');
+const ee = require('@google/earthengine');
+const privateKey = require('./privatekey.json');
 
 const getCollectionList = require('./getCollectionList.js')
 

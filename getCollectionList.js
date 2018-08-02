@@ -1,4 +1,4 @@
-var ee = require('@google/earthengine');
+const ee = require('@google/earthengine');
 
 module.exports = function(lat, lng){
     console.log(`processing ${lat}, ${lng}`)
