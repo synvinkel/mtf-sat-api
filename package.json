@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "start": "app.js"
+  },
   "dependencies": {
     "@google/earthengine": "^0.1.143",
     "compression": "^1.7.3",
