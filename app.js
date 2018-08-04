@@ -19,7 +19,7 @@ const privateKey = require('./privatekey.json');
 ee.data.authenticateViaPrivateKey(
     privateKey,
     () => {
-        ee.initialize( null, null, runApp,
+        ee.initialize(null, null, runApp,
             (e) => console.error('Initialization error: ' + e)
         )
     },
@@ -45,10 +45,32 @@ function runApp() {
     app.get('/timeseries', checkApiKey, timeseries)
     app.get('/timeseries/:place',
         checkApiKey,
-        (req, res, next) => {
+        async (req, res, next) => {
 
-        },
-        timeseries)
+            const geocodeUrl = 'https://geocoder.api.here.com/6.2/geocode.json'
+            const APP_ID = process.env.HERE_APP_ID
+            const APP_CODE = process.env.HERE_APP_CODE
+            const authString = `&app_id=${APP_ID}&app_code=${APP_CODE}`
+
+            const { place } = req.params
+
+            const geocoding = await(await fetch(`${geocodeUrl}?searchtext=${place}${authString}`)).json()
+
+
+            if(geocoding.Response.View.length > 0){
+                const location = geocoding.Response.View[0].Result[0].Location.DisplayPosition
+                req.query.lng = location.Longitude
+                req.query.lat = location.Latitude
+
+                next()
+                return
+            }
+
+            next({
+                message: `No location with name "${place}" found.`
+            })
+
+        }, timeseries)
     app.get('/image/:lng/:lat/:filename', image)
 
     app.use((req, res, next) => {
