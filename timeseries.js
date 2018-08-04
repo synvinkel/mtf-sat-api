@@ -26,11 +26,24 @@ module.exports = (req, res, next) => {
             return
         }
 
-        const poi = ee.Geometry.Point()
+        const aoi = ee.Geometry.Point(coords).buffer(2000).bounds()
         const s2 = ee.ImageCollection('COPERNICUS/S2')
-            .filterBounds(poi)
+            .filterBounds(aoi)
+            .filter(ee.Filter.contains('.geo', aoi))
+            .distinct('system:time_start')
 
-        s2.getInfo((data, err) => {
+        s2mean = s2.map(function (image) {
+            var clipped = ee.Image(image).clip(aoi)
+            var mean = clipped.reduceRegion({
+                reducer: ee.Reducer.mean(),
+                geometry: aoi,
+                scale: 10
+            })
+
+            return clipped.set('mean', mean)
+        })
+
+        s2mean.getInfo((data, err) => {
             if (err) {
                 next({
                     message: err
@@ -38,9 +51,37 @@ module.exports = (req, res, next) => {
                 return
             }
 
+            const { features } = data
+
+            const parsed = {
+                location: { lat: lat, lng: lng },
+                images: features.map(image => {
+
+                    const bands = image.properties.mean
+                    Object.keys(bands).forEach((band) => {
+                        if(bands[band] in ['QA10', 'QA20', 'QA60']){
+                            delete bands[band]
+                            return
+                        }
+                        if (bands[band]) {
+                            bands[band] = +bands[band].toFixed(2)
+                            return
+                        }
+                    })
+
+                    return {
+                        bands: bands,
+                        cloudcover: image.properties['CLOUDY_PIXEL_PERCENTAGE'],
+                        time: image.properties['system:time_start'],
+                        url: `https://mtf-sat.synvinkel.org/image/${image.properties['system:index']}`
+                    }
+                })
+            }
+
+
             res.json({
                 success: true,
-                data: data
+                data: parsed
             })
         }
         )
