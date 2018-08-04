@@ -1,4 +1,5 @@
 const ee = require('@google/earthengine');
+const { format } = require('date-fns')
 
 
 module.exports = (req, res, next) => {
@@ -59,7 +60,7 @@ module.exports = (req, res, next) => {
 
                     const bands = image.properties.mean
                     Object.keys(bands).forEach((band) => {
-                        if(bands[band] in ['QA10', 'QA20', 'QA60']){
+                        if (bands[band] in ['QA10', 'QA20', 'QA60']) {
                             delete bands[band]
                             return
                         }
@@ -69,10 +70,13 @@ module.exports = (req, res, next) => {
                         }
                     })
 
+                    const time = image.properties['system:time_start']
+
                     return {
                         bands: bands,
                         cloudcover: image.properties['CLOUDY_PIXEL_PERCENTAGE'],
-                        time: image.properties['system:time_start'],
+                        time: time,
+                        date: format(new Date(time), 'YYYY-MM-DD'),
                         url: `https://mtf-sat.synvinkel.org/image/${image.properties['system:index']}`
                     }
                 })
