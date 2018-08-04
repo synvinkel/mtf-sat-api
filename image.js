@@ -31,8 +31,9 @@ module.exports = (req, res, next) => {
 
         ee.Image(`COPERNICUS/S2/${index}`).clip(aoi)
             .visualize({
-                bands: ['B4', 'B3', 'B2'],
-                min: 0, max: 2500
+                'bands': ['B4' , 'B3' , 'B2'],
+                'min': [300, 400, 600],
+                'max': [2000, 1900, 1900]
             })
             .getThumbURL({
                 dimensions: 1000,
