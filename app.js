@@ -7,13 +7,13 @@ const logger = require('morgan')
 const port = parseInt(process.env.PORT, 10) || 3000
 const dev = process.env.NODE_ENV !== 'production'
 
-const { checkApiKey } = require('./checkApiKey.js')
+const { checkApiKey } = require('./checkApiKey')
+
+const timeseries = require('./timeseries')
 
 // ee stuff
 const ee = require('@google/earthengine');
 const privateKey = require('./privatekey.json');
-
-const getCollectionList = require('./getCollectionList.js')
 
 ee.data.authenticateViaPrivateKey(privateKey, initializeEe, function (e) {
     console.error('Authentication error: ' + e);
@@ -34,26 +34,34 @@ function runApp() {
     app.use(compression())
     app.use(logger('dev'))
 
-    app.get('/timeline', checkApiKey, (req, res, next) => {
-            const { lat, lng } = req.query
-            res.json(getCollectionList(lat, lng))
-        }
+    app.get('/', (req, res) => {
+        res.json({
+            success: false,
+            message: "Please read the documentation"
+        })
+    })
+
+    app.get('/timeseries', checkApiKey, timeseries)
+
+    app.get('/image', checkApiKey, (req, res, next) => {
+        // get image script
+    }
     )
 
     app.use((req, res, next) => {
         res.status(404).json({
-          success: false,
-          message: "Not found"
+            success: false,
+            message: "Not found"
         })
-      })
-      
-      app.use((err, req, res, next) => {
+    })
+
+    app.use((err, req, res, next) => {
         res.status(err.status || 500).json({
-          success: false,
-          message: err.message
+            success: false,
+            message: err.message
         })
-      })
-      
+    })
+
 
     app.listen(port, (err) => {
         if (err) throw err
