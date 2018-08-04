@@ -8,6 +8,7 @@ module.exports.checkApiKey = (req, res, next) => {
 
     if (keyexists) {
         next()
+        return
     }
 
     next({
