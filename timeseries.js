@@ -60,7 +60,7 @@ module.exports = (req, res, next) => {
 
                     const bands = image.properties.mean
                     Object.keys(bands).forEach((band) => {
-                        if (bands[band] in ['QA10', 'QA20', 'QA60']) {
+                        if (['QA10', 'QA20', 'QA60'].some(badband => badband === band)) {
                             delete bands[band]
                             return
                         }
