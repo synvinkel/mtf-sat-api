@@ -77,7 +77,7 @@ module.exports = (req, res, next) => {
                         cloudcover: image.properties['CLOUDY_PIXEL_PERCENTAGE'],
                         time: time,
                         date: format(new Date(time), 'YYYY-MM-DD'),
-                        url: `https://mtf-sat.synvinkel.org/image/${image.properties['system:index']}`
+                        url: `https://mtf-sat.synvinkel.org/image/${lat}/${lng}/${image.properties['system:index']}.png`
                     }
                 })
             }
