@@ -16,15 +16,15 @@ const privateKey = require('./privatekey.json');
 
 
 // ee stuff
-ee.data.authenticateViaPrivateKey(privateKey, initializeEe, function (e) {
-    console.error('Authentication error: ' + e);
-});
-
-function initializeEe() {
-    ee.initialize(null, null, runApp, function (e) {
-        console.error('Initialization error: ' + e);
-    });
-};
+ee.data.authenticateViaPrivateKey(
+    privateKey,
+    () => {
+        ee.initialize( null, null, runApp,
+            (e) => console.error('Initialization error: ' + e)
+        )
+    },
+    (e) => console.error('Authentication error: ' + e)
+)
 
 // Run the Express app
 function runApp() {
