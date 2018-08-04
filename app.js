@@ -2,6 +2,7 @@
 const express = require('express')
 const cors = require('cors')
 const compression = require('compression')
+const logger = require('morgan')
 
 const port = parseInt(process.env.PORT, 10) || 3000
 const dev = process.env.NODE_ENV !== 'production'
@@ -29,6 +30,7 @@ function runApp() {
 
     app.use(cors())
     app.use(compression())
+    app.use(logger('dev'))
 
     app.get('/timeline/:lat/:lng', (req, res, next) => {
             const { lat, lng } = req.params
@@ -39,6 +41,21 @@ function runApp() {
     app.use((err, req, res, next) => {
         console.log(err)
     })
+
+    app.use((req, res, next) => {
+        res.status(404).json({
+          success: false,
+          message: "Not found"
+        })
+      })
+      
+      app.use((err, req, res, next) => {
+        res.status(err.status || 500).json({
+          success: false,
+          message: err.message
+        })
+      })
+      
 
     app.listen(port, (err) => {
         if (err) throw err
