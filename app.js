@@ -1,21 +1,21 @@
-// express stuff
-const express = require('express')
-const cors = require('cors')
+
 const compression = require('compression')
+const cors = require('cors')
+const ee = require('@google/earthengine');
+const express = require('express')
+const fetch = require('node-fetch')
 const logger = require('morgan')
 
-const port = parseInt(process.env.PORT, 10) || 3000
-const dev = process.env.NODE_ENV !== 'production'
-
 const { checkApiKey } = require('./checkApiKey')
-
-const timeseries = require('./timeseries')
 const image = require('./image')
+const timeseries = require('./timeseries')
 
-// ee stuff
-const ee = require('@google/earthengine');
+const dev = process.env.NODE_ENV !== 'production'
+const port = parseInt(process.env.PORT, 10) || 3000
 const privateKey = require('./privatekey.json');
 
+
+// ee stuff
 ee.data.authenticateViaPrivateKey(privateKey, initializeEe, function (e) {
     console.error('Authentication error: ' + e);
 });
@@ -43,6 +43,12 @@ function runApp() {
     })
 
     app.get('/timeseries', checkApiKey, timeseries)
+    app.get('/timeseries/:place',
+        checkApiKey,
+        (req, res, next) => {
+
+        },
+        timeseries)
     app.get('/image/:lng/:lat/:filename', image)
 
     app.use((req, res, next) => {
