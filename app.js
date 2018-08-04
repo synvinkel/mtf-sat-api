@@ -7,6 +7,8 @@ const logger = require('morgan')
 const port = parseInt(process.env.PORT, 10) || 3000
 const dev = process.env.NODE_ENV !== 'production'
 
+const { checkApiKey } = require('./checkApiKey.js')
+
 // ee stuff
 const ee = require('@google/earthengine');
 const privateKey = require('./privatekey.json');
@@ -32,15 +34,11 @@ function runApp() {
     app.use(compression())
     app.use(logger('dev'))
 
-    app.get('/timeline/:lat/:lng', (req, res, next) => {
-            const { lat, lng } = req.params
+    app.get('/timeline', checkApiKey, (req, res, next) => {
+            const { lat, lng } = req.query
             res.json(getCollectionList(lat, lng))
         }
     )
-
-    app.use((err, req, res, next) => {
-        console.log(err)
-    })
 
     app.use((req, res, next) => {
         res.status(404).json({
