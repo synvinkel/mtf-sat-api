@@ -5,18 +5,18 @@ const { format } = require('date-fns')
 module.exports = (req, res, next) => {
     try {
 
-        const { lat, lng } = req.query
-        const coords = [parseFloat(lat), parseFloat(lng)]
+        const { lng, lat } = req.query
+        const coords = [parseFloat(lng), parseFloat(lat)]
 
         // error handling for coordinates
         if (coords.some((coord, i) => {
             if (!coord) {
                 return true
             }
-            if (i === 0 && (coord > 90 || coord < -90)) {
+            if (i === 0 && (coord > 180 || coord < -180)) {
                 return true
             }
-            if (i === 1 && (coord > 180 || coord < -180)) {
+            if (i === 1 && (coord > 90 || coord < -90)) {
                 return true
             }
             return false
@@ -55,7 +55,7 @@ module.exports = (req, res, next) => {
             const { features } = data
 
             const parsed = {
-                location: { lat: lat, lng: lng },
+                location: { lng: lng, lat: lat },
                 images: features.map(image => {
 
                     const bands = image.properties.mean
@@ -77,7 +77,7 @@ module.exports = (req, res, next) => {
                         cloudcover: image.properties['CLOUDY_PIXEL_PERCENTAGE'],
                         time: time,
                         date: format(new Date(time), 'YYYY-MM-DD'),
-                        url: `https://mtf-sat.synvinkel.org/image/${lat}/${lng}/${image.properties['system:index']}.png`
+                        url: `${process.env.MYURL}/image/${lng}/${lat}/${image.properties['system:index']}.png`
                     }
                 })
             }
