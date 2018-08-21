@@ -1,9 +1,23 @@
 const ee = require('@google/earthengine');
 const request = require('request')
 
+const visparams = {
+    rgb: {
+        'bands': ['B4', 'B3', 'B2'],
+        'min': [300, 400, 600],
+        'max': [2000, 1900, 1900]
+    },
+    falsecolor: {
+        'bands': ['B8', 'B4', 'B3'],
+        'min': [300, 400, 600],
+        'max': [2000, 1900, 1900]
+    }
+}
+
 module.exports = (req, res, next) => {
     try {
         const { lng, lat, filename } = req.params
+        const { visualize } = req.query
 
         const index = filename.split('.')[0]
 
@@ -29,12 +43,10 @@ module.exports = (req, res, next) => {
 
         const aoi = ee.Geometry.Point(coords).buffer(2000).bounds()
 
+        const viz = visparams[visualize] ? visparams[visualize] : visparams.rgb
+
         ee.Image(`COPERNICUS/S2/${index}`).clip(aoi)
-            .visualize({
-                'bands': ['B4' , 'B3' , 'B2'],
-                'min': [300, 400, 600],
-                'max': [2000, 1900, 1900]
-            })
+            .visualize(viz)
             .getThumbURL({
                 dimensions: 1000,
                 format: 'png'
@@ -45,7 +57,8 @@ module.exports = (req, res, next) => {
                     })
                     return
                 }
-
+                
+                res.setHeader("Expires", new Date(Date.now() + 2592000000).toUTCString())
                 request.get(url).pipe(res)
             })
 
