@@ -9,11 +9,10 @@ const seasons = {
     winter: { start: 315, end: 45 },
 }
 
-
 module.exports = (req, res, next) => {
     try {
 
-        const { lng, lat, maxCloudCover, season: reqSeason } = req.query
+        const { lng, lat, maxCloudCover, season: reqSeason, startDate:reqStartDate, endDate:reqEndDate } = req.query
         const coords = [parseFloat(lng), parseFloat(lat)]
 
         // error handling for coordinates
@@ -36,11 +35,13 @@ module.exports = (req, res, next) => {
         }
 
         const aoi = ee.Geometry.Point(coords).buffer(2000).bounds()
+        // first we make the basic filtering
         let s2 = ee.ImageCollection('COPERNICUS/S2')
             .filterBounds(aoi)
             .filter(ee.Filter.contains('.geo', aoi))
             .distinct('system:time_start')
 
+        // filter for cloudcover
         if (maxCloudCover) {
             console.log('filtering for cloudcover', maxCloudCover)
             cloudCover = parseFloat(maxCloudCover)
@@ -55,6 +56,22 @@ module.exports = (req, res, next) => {
             }
         }
 
+        // filter for specific daterange
+        if (reqStartDate && reqEndDate) {
+            const startDate = format(new Date(reqStartDate), 'YYYY-MM-DD')
+            const endDate = format(new Date(reqEndDate), 'YYYY-MM-DD')
+            if(startDate && endDate){
+                console.log('filtering for daterange', startDate, endDate)
+                s2 = s2.filterDate(startDate, endDate)
+            } else {
+                next({
+                    message: "Please provide valid startDate and endDate. Dates should be formatted YYYY-MM-DD (e.g. 2018-01-31)."
+                })
+                return
+            }
+        }
+
+        // filter for season
         if (reqSeason) {
             console.log('filtering for season', reqSeason)
             if (seasons[reqSeason]) {
