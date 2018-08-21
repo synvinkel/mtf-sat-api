@@ -1,5 +1,5 @@
-const https = require('https')
 const ee = require('@google/earthengine');
+const request = require('request')
 
 module.exports = (req, res, next) => {
     try {
@@ -46,7 +46,7 @@ module.exports = (req, res, next) => {
                     return
                 }
 
-                https.get(url, file => file.pipe(res))
+                request.get(url).pipe(res)
             })
 
 
