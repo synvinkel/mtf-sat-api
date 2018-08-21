@@ -54,7 +54,9 @@ function runApp() {
 
             const { place } = req.params
 
-            const geocoding = await(await fetch(`${geocodeUrl}?searchtext=${place}${authString}`)).json()
+            const geocoding = await(await fetch(`${geocodeUrl}?searchtext=${place}${authString}`).catch(err => {
+                console.log(err)
+            })).json()
 
 
             if(geocoding.Response.View.length > 0){
