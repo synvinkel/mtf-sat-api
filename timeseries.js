@@ -1,11 +1,19 @@
 const ee = require('@google/earthengine');
 const { format } = require('date-fns')
 
+// very northsperocentric
+const seasons = {
+    spring: { start: 45, end: 135 },
+    summer: { start: 135, end: 225 },
+    fall: { start: 225, end: 315 },
+    winter: { start: 315, end: 45 },
+}
+
 
 module.exports = (req, res, next) => {
     try {
 
-        const { lng, lat } = req.query
+        const { lng, lat, maxCloudCover, season: reqSeason } = req.query
         const coords = [parseFloat(lng), parseFloat(lat)]
 
         // error handling for coordinates
@@ -28,10 +36,37 @@ module.exports = (req, res, next) => {
         }
 
         const aoi = ee.Geometry.Point(coords).buffer(2000).bounds()
-        const s2 = ee.ImageCollection('COPERNICUS/S2')
+        let s2 = ee.ImageCollection('COPERNICUS/S2')
             .filterBounds(aoi)
             .filter(ee.Filter.contains('.geo', aoi))
             .distinct('system:time_start')
+
+        if (maxCloudCover) {
+            console.log('filtering for cloudcover', maxCloudCover)
+            cloudCover = parseFloat(maxCloudCover)
+            if (cloudCover >= 0 && cloudCover <= 100) {
+
+                s2 = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', cloudCover))
+            } else {
+                next({
+                    message: "Please provide maxCloudCover between 0 and 100"
+                })
+                return
+            }
+        }
+
+        if (reqSeason) {
+            console.log('filtering for season', reqSeason)
+            if (seasons[reqSeason]) {
+                const season = seasons[reqSeason]
+                s2 = s2.filter(ee.Filter.calendarRange(season.start, season.end))
+            } else {
+                next({
+                    message: "Season must be one of 'spring','summer','fall','winter'. (Note that the season definitions are very northenhemispherocentric)."
+                })
+                return
+            }
+        }
 
         s2mean = s2.map(function (image) {
             var clipped = ee.Image(image).clip(aoi)
