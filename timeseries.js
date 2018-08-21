@@ -77,7 +77,7 @@ module.exports = (req, res, next) => {
                         cloudcover: image.properties['CLOUDY_PIXEL_PERCENTAGE'],
                         time: time,
                         date: format(new Date(time), 'YYYY-MM-DD'),
-                        url: `${process.env.MYURL}/image/${lng}/${lat}/${image.properties['system:index']}.png`
+                        url: `${process.env.ROOT_URL}/image/${lng}/${lat}/${image.properties['system:index']}.png`
                     }
                 })
             }
