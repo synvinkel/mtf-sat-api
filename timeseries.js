@@ -62,7 +62,7 @@ module.exports = (req, res, next) => {
         console.log('buffer:', buffer)
 
         let aoi = ee.Geometry.Point(coords)
-        if(buffer !== 'none'){
+        if (buffer !== 'none') {
             aoi = aoi.buffer(buffer).bounds()
         }
 
@@ -116,7 +116,7 @@ module.exports = (req, res, next) => {
             }
         }
 
-        s2mean = s2.map(function (image) {
+        let s2mean = s2.map(function (image) {
             var clipped = ee.Image(image).clip(aoi)
             var mean = clipped.reduceRegion({
                 reducer: ee.Reducer.mean(),
@@ -171,8 +171,7 @@ module.exports = (req, res, next) => {
                 success: true,
                 data: parsed
             })
-        }
-        )
+        })
 
     } catch (e) {
         next(e)
