@@ -19,7 +19,10 @@ module.exports = (req, res, next) => {
         const { lng, lat, filename } = req.params
         const { visualize } = req.query
 
-        const index = filename.split('.')[0]
+        const basename = filename.split('.')[0]
+        const index = basename.split('-')[0]
+        const bufferHex = basename.split('-')[1]
+        const buffer = parseInt(bufferHex, 16)
 
         const coords = [parseFloat(lng), parseFloat(lat)]
         // error handling for coordinates
@@ -41,7 +44,7 @@ module.exports = (req, res, next) => {
             return
         }
 
-        const aoi = ee.Geometry.Point(coords).buffer(2000).bounds()
+        const aoi = ee.Geometry.Point(coords).buffer(buffer).bounds()
 
         const viz = visparams[visualize] ? visparams[visualize] : visparams.rgb
 

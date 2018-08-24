@@ -12,7 +12,15 @@ const seasons = {
 module.exports = (req, res, next) => {
     try {
 
-        const { lng, lat, maxCloudCover, season: reqSeason, startDate:reqStartDate, endDate:reqEndDate } = req.query
+        const {
+            lng,
+            lat,
+            maxCloudCover,
+            season: reqSeason,
+            startDate: reqStartDate,
+            endDate: reqEndDate,
+            buffer: reqBuffer
+        } = req.query
         const coords = [parseFloat(lng), parseFloat(lat)]
 
         // error handling for coordinates
@@ -34,7 +42,30 @@ module.exports = (req, res, next) => {
             return
         }
 
-        const aoi = ee.Geometry.Point(coords).buffer(2000).bounds()
+        let buffer
+        if (reqBuffer) {
+            const intBuffer = parseInt(reqBuffer)
+            console.log('intBuffer', intBuffer, reqBuffer)
+            if (intBuffer) {
+                buffer = intBuffer
+            } else if (reqBuffer === 'none') {
+                buffer = 'none'
+            } else {
+                next({
+                    message: "Invalid buffer requested. Please provide a number."
+                })
+            }
+        } else {
+            buffer = 2000
+        }
+
+        console.log('buffer:', buffer)
+
+        let aoi = ee.Geometry.Point(coords)
+        if(buffer !== 'none'){
+            aoi = aoi.buffer(buffer).bounds()
+        }
+
         // first we make the basic filtering
         let s2 = ee.ImageCollection('COPERNICUS/S2')
             .filterBounds(aoi)
@@ -60,7 +91,7 @@ module.exports = (req, res, next) => {
         if (reqStartDate && reqEndDate) {
             const startDate = format(new Date(reqStartDate), 'YYYY-MM-DD')
             const endDate = format(new Date(reqEndDate), 'YYYY-MM-DD')
-            if(startDate && endDate){
+            if (startDate && endDate) {
                 console.log('filtering for daterange', startDate, endDate)
                 s2 = s2.filterDate(startDate, endDate)
             } else {
@@ -124,11 +155,13 @@ module.exports = (req, res, next) => {
 
                     const time = image.properties['system:time_start']
 
+                    const bufferHex = buffer === 'none' ? (10).toString(16) : buffer.toString(16)
+
                     return {
                         bands: bands,
                         cloudcover: image.properties['CLOUDY_PIXEL_PERCENTAGE'],
                         date: format(new Date(time), 'YYYY-MM-DD'),
-                        url: `${process.env.ROOT_URL}/image/${lng}/${lat}/${image.properties['system:index']}.png`
+                        url: `${process.env.ROOT_URL}/image/${lng}/${lat}/${image.properties['system:index']}-${bufferHex}.png`
                     }
                 })
             }
