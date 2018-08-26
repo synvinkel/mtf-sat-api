@@ -1,22 +1,10 @@
 const ee = require('@google/earthengine');
 const request = require('request')
 
-const visparams = {
-    rgb: {
-        'bands': ['B4', 'B3', 'B2'],
-        'min': [300, 400, 600],
-        'max': [2000, 1900, 1900]
-    },
-    falsecolor: {
-        'bands': ['B8', 'B4', 'B3'],
-        'min': [300, 400, 600],
-        'max': [2000, 1900, 1900]
-    }
-}
-
 module.exports = (req, res, next) => {
     try {
-        const { lng, lat, filename, bands: reqBands } = req.params
+        const { lng, lat, filename } = req.params
+        const { bands:reqBands } = req.query
 
         const basename = filename.split('.')[0]
         const index = basename.split('-')[0]
@@ -43,7 +31,21 @@ module.exports = (req, res, next) => {
             return
         }
 
-        let bands = { r: 'B4', g: 'B3', b: 'B2' }
+        const bands = { r: 'B4', g: 'B3', b: 'B2' }
+        if(reqBands){
+            const splitBands = reqBands.trim().split(',')
+            console.log('custom bands', splitBands)
+            if(splitBands.length === 3){
+                bands.r = splitBands[0]
+                bands.g = splitBands[1]
+                bands.b = splitBands[2]
+            } else {
+                next({
+                    status: 400,
+                    message: "Please provide three bands, or remove the bands parameter for truecolor rgb."
+                })
+            }
+        }
 
         const aoi = ee.Geometry.Point(coords).buffer(buffer).bounds()
 
@@ -61,14 +63,14 @@ module.exports = (req, res, next) => {
         const imgRGB = img.select([bands.r, bands.g, bands.b])
             .visualize({
                 min: ee.List([
-                    ee.Number(stats.get('B4_mean')).subtract(ee.Number(n_std).multiply(ee.Number(stats.get('B4_stddev')))),
-                    ee.Number(stats.get('B3_mean')).subtract(ee.Number(n_std).multiply(ee.Number(stats.get('B3_stddev')))),
-                    ee.Number(stats.get('B2_mean')).subtract(ee.Number(n_std).multiply(ee.Number(stats.get('B2_stddev')))),
+                    ee.Number(stats.get(bands.r + '_mean')).subtract(ee.Number(n_std).multiply(ee.Number(stats.get(bands.r + '_stddev')))),
+                    ee.Number(stats.get(bands.g + '_mean')).subtract(ee.Number(n_std).multiply(ee.Number(stats.get(bands.g + '_stddev')))),
+                    ee.Number(stats.get(bands.b + '_mean')).subtract(ee.Number(n_std).multiply(ee.Number(stats.get(bands.b + '_stddev')))),
                 ]),
                 max: ee.List([
-                    ee.Number(stats.get('B4_mean')).add(ee.Number(n_std).multiply(ee.Number(stats.get('B4_stddev')))),
-                    ee.Number(stats.get('B3_mean')).add(ee.Number(n_std).multiply(ee.Number(stats.get('B3_stddev')))),
-                    ee.Number(stats.get('B2_mean')).add(ee.Number(n_std).multiply(ee.Number(stats.get('B2_stddev')))),
+                    ee.Number(stats.get(bands.r + '_mean')).add(ee.Number(n_std).multiply(ee.Number(stats.get(bands.r + '_stddev')))),
+                    ee.Number(stats.get(bands.g + '_mean')).add(ee.Number(n_std).multiply(ee.Number(stats.get(bands.g + '_stddev')))),
+                    ee.Number(stats.get(bands.b + '_mean')).add(ee.Number(n_std).multiply(ee.Number(stats.get(bands.b + '_stddev')))),
                 ])
             })
 
