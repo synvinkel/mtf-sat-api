@@ -51,7 +51,7 @@ module.exports = (req, res, next) => {
         ee.Image(`COPERNICUS/S2/${index}`).clip(aoi)
             .visualize(viz)
             .getThumbURL({
-                dimensions: 1000,
+                dimensions: buffer,
                 format: 'png'
             }, (url, err) => {
                 if (err) {
