@@ -169,11 +169,14 @@ module.exports = (req, res, next) => {
                 })
             }
 
+            if(buffer === 0){
+                parsed.images =  parsed.images.map(img => {
+                    delete img.url
+                    return img
+                })
+            }
 
-            res.json({
-                success: true,
-                data: parsed
-            })
+            res.json(parsed)
         })
 
     } catch (e) {
