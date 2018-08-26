@@ -49,15 +49,26 @@ module.exports = (req, res, next) => {
         const img = ee.Image(`COPERNICUS/S2/${index}`).clip(aoi)
 
         const stats = img.select(['B4', 'B3', 'B2']).reduceRegion({
-            reducer: ee.Reducer.percentile([5, 95]),
+            reducer: ee.Reducer.mean().combine({
+                reducer2: ee.Reducer.stdDev(), sharedInputs: true
+            }).setOutputs(['mean', 'stddev']),
             scale: 10,
-            maxPixels: 1e9
+            bestEffort: true
         })
 
-        const imgRGB  = img.select(['B4', 'B3', 'B2'])
+        const n_std = 2
+        const imgRGB = img.select(['B4', 'B3', 'B2'])
             .visualize({
-                min: ee.List([stats.get('B4_p5'), stats.get('B3_p5'), stats.get('B2_p5')]),
-                max: ee.List([stats.get('B4_p95'), stats.get('B3_p95'), stats.get('B2_p95')]),
+                min: ee.List([
+                    ee.Number(stats.get('B4_mean')).subtract(ee.Number(n_std).multiply(ee.Number(stats.get('B4_stddev')))),
+                    ee.Number(stats.get('B3_mean')).subtract(ee.Number(n_std).multiply(ee.Number(stats.get('B3_stddev')))),
+                    ee.Number(stats.get('B2_mean')).subtract(ee.Number(n_std).multiply(ee.Number(stats.get('B2_stddev')))),
+                ]),
+                max: ee.List([
+                    ee.Number(stats.get('B4_mean')).add(ee.Number(n_std).multiply(ee.Number(stats.get('B4_stddev')))),
+                    ee.Number(stats.get('B3_mean')).add(ee.Number(n_std).multiply(ee.Number(stats.get('B3_stddev')))),
+                    ee.Number(stats.get('B2_mean')).add(ee.Number(n_std).multiply(ee.Number(stats.get('B2_stddev')))),
+                ])
             })
 
         imgRGB
