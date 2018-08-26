@@ -37,6 +37,7 @@ module.exports = (req, res, next) => {
             return false
         })) {
             next({
+                status: 400,
                 message: "Please provide proper lat/lng"
             })
             return
@@ -50,6 +51,7 @@ module.exports = (req, res, next) => {
                 buffer = intBuffer
             } else {
                 next({
+                    status: 400,
                     message: "Invalid buffer requested. Please provide a number, 0 or more."
                 })
             }
@@ -79,6 +81,7 @@ module.exports = (req, res, next) => {
                 s2 = s2.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', cloudCover))
             } else {
                 next({
+                    status: 400,
                     message: "Please provide maxCloudCover between 0 and 100"
                 })
                 return
@@ -94,6 +97,7 @@ module.exports = (req, res, next) => {
                 s2 = s2.filterDate(startDate, endDate)
             } else {
                 next({
+                    status: 400,
                     message: "Please provide valid startDate and endDate. Dates should be formatted YYYY-MM-DD (e.g. 2018-01-31)."
                 })
                 return
@@ -108,6 +112,7 @@ module.exports = (req, res, next) => {
                 s2 = s2.filter(ee.Filter.calendarRange(season.start, season.end))
             } else {
                 next({
+                    status: 400,
                     message: "Season must be one of 'spring','summer','fall','winter'. (Note that the season definitions are very northenhemispherocentric)."
                 })
                 return
