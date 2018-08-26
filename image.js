@@ -46,10 +46,21 @@ module.exports = (req, res, next) => {
 
         const aoi = ee.Geometry.Point(coords).buffer(buffer).bounds()
 
-        const viz = visparams[visualize] ? visparams[visualize] : visparams.rgb
+        const img = ee.Image(`COPERNICUS/S2/${index}`).clip(aoi)
 
-        ee.Image(`COPERNICUS/S2/${index}`).clip(aoi)
-            .visualize(viz)
+        const stats = img.select(['B4', 'B3', 'B2']).reduceRegion({
+            reducer: ee.Reducer.percentile([5, 95]),
+            scale: 10,
+            maxPixels: 1e9
+        })
+
+        const imgRGB  = img.select(['B4', 'B3', 'B2'])
+            .visualize({
+                min: ee.List([stats.get('B4_p5'), stats.get('B3_p5'), stats.get('B2_p5')]),
+                max: ee.List([stats.get('B4_p95'), stats.get('B3_p95'), stats.get('B2_p95')]),
+            })
+
+        imgRGB
             .getThumbURL({
                 dimensions: buffer,
                 format: 'png'
@@ -60,7 +71,7 @@ module.exports = (req, res, next) => {
                     })
                     return
                 }
-                
+
                 res.setHeader("Expires", new Date(Date.now() + 2592000000).toUTCString())
                 request.get(url).pipe(res)
             })
