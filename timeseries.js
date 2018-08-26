@@ -46,13 +46,11 @@ module.exports = (req, res, next) => {
         if (reqBuffer) {
             const intBuffer = parseInt(reqBuffer)
             console.log('intBuffer', intBuffer, reqBuffer)
-            if (intBuffer) {
+            if (intBuffer !== NaN && intBuffer >= 0) {
                 buffer = intBuffer
-            } else if (reqBuffer === 'none') {
-                buffer = 'none'
             } else {
                 next({
-                    message: "Invalid buffer requested. Please provide a number."
+                    message: "Invalid buffer requested. Please provide a number, 0 or more."
                 })
             }
         } else {
@@ -62,7 +60,7 @@ module.exports = (req, res, next) => {
         console.log('buffer:', buffer)
 
         let aoi = ee.Geometry.Point(coords)
-        if (buffer !== 'none') {
+        if (buffer > 0) {
             aoi = aoi.buffer(buffer).bounds()
         }
 
@@ -155,7 +153,7 @@ module.exports = (req, res, next) => {
 
                     const time = image.properties['system:time_start']
 
-                    const bufferHex = buffer === 'none' ? (10).toString(16) : buffer.toString(16)
+                    const bufferHex = buffer === 0 ? (1).toString(16) : buffer.toString(16)
 
                     return {
                         bands: bands,
