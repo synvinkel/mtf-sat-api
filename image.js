@@ -16,8 +16,7 @@ const visparams = {
 
 module.exports = (req, res, next) => {
     try {
-        const { lng, lat, filename } = req.params
-        const { visualize } = req.query
+        const { lng, lat, filename, bands: reqBands } = req.params
 
         const basename = filename.split('.')[0]
         const index = basename.split('-')[0]
@@ -44,11 +43,13 @@ module.exports = (req, res, next) => {
             return
         }
 
+        let bands = { r: 'B4', g: 'B3', b: 'B2' }
+
         const aoi = ee.Geometry.Point(coords).buffer(buffer).bounds()
 
         const img = ee.Image(`COPERNICUS/S2/${index}`).clip(aoi)
 
-        const stats = img.select(['B4', 'B3', 'B2']).reduceRegion({
+        const stats = img.select([bands.r, bands.g, bands.b]).reduceRegion({
             reducer: ee.Reducer.mean().combine({
                 reducer2: ee.Reducer.stdDev(), sharedInputs: true
             }).setOutputs(['mean', 'stddev']),
@@ -57,7 +58,7 @@ module.exports = (req, res, next) => {
         })
 
         const n_std = 2
-        const imgRGB = img.select(['B4', 'B3', 'B2'])
+        const imgRGB = img.select([bands.r, bands.g, bands.b])
             .visualize({
                 min: ee.List([
                     ee.Number(stats.get('B4_mean')).subtract(ee.Number(n_std).multiply(ee.Number(stats.get('B4_stddev')))),
