@@ -47,7 +47,7 @@ module.exports = (req, res, next) => {
             }
         }
 
-        const aoi = ee.Geometry.Point(coords).buffer(buffer).bounds()
+        const aoi = ee.Geometry.Point(coords).buffer(buffer ? buffer : 2000).bounds()
 
         const img = ee.Image(`COPERNICUS/S2/${index}`).clip(aoi)
 
@@ -76,7 +76,7 @@ module.exports = (req, res, next) => {
 
         imgRGB
             .getThumbURL({
-                dimensions: buffer,
+                dimensions: buffer ? buffer : 2000,
                 format: 'png'
             }, (url, err) => {
                 if (err) {
