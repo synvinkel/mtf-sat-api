@@ -95,7 +95,7 @@ module.exports = (req, res, next) => {
                     request.get(url).pipe(res)
                 })
         }
-        if(filetype === 'zip'){
+        if(filetype === 'zip' || filetype === 'tif'){
             img
                 .getDownloadURL({}, (url, err) => {
                     if(err){
