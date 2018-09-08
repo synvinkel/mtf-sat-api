@@ -172,7 +172,8 @@ module.exports = (req, res, next) => {
                         cloudcover: image.properties['CLOUDY_PIXEL_ERCENTAGE'],
                         date: format(new Date(time), 'YYYY-MM-DD'),
                         time: image.properties['system:time_start'],
-                        url: `${process.env.ROOT_URL}/image/${lng}/${lat}/${image.properties['system:index']}-${bufferHex}.${filetype}`
+                        url: `${process.env.ROOT_URL}/image/${lng}/${lat}/${image.properties['system:index']}-${bufferHex}.${filetype}`,
+                        rawUrl: `${process.env.ROOT_URL}/image/${lng}/${lat}/${image.properties['system:index']}-${bufferHex}.zip`
                     }
                 })
             }
