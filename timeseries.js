@@ -162,8 +162,9 @@ module.exports = (req, res, next) => {
 
                     return {
                         bands: bands,
-                        cloudcover: image.properties['CLOUDY_PIXEL_PERCENTAGE'],
+                        cloudcover: image.properties['CLOUDY_PIXEL_ERCENTAGE'],
                         date: format(new Date(time), 'YYYY-MM-DD'),
+                        time: image.properties['system:time_start'],
                         url: `${process.env.ROOT_URL}/image/${lng}/${lat}/${image.properties['system:index']}-${bufferHex}.png`
                     }
                 })
