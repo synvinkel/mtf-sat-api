@@ -122,7 +122,7 @@ module.exports = (req, res, next) => {
         }
 
         let filetype = 'png'
-        if(reqFiletype && reqFiletype === 'tif'){
+        if(reqFiletype && reqFiletype === 'tif' || reqFiletype === 'tiff'){
             filetype = 'zip'
         }
 
