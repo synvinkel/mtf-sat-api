@@ -19,9 +19,11 @@ module.exports = (req, res, next) => {
             season: reqSeason,
             startDate: reqStartDate,
             endDate: reqEndDate,
-            buffer: reqBuffer
+            buffer: reqBuffer,
+            filetype: reqFiletype
         } = req.query
         const coords = [parseFloat(lng), parseFloat(lat)]
+
 
         // error handling for coordinates
         if (coords.some((coord, i) => {
@@ -119,6 +121,11 @@ module.exports = (req, res, next) => {
             }
         }
 
+        let filetype = 'png'
+        if(reqFiletype && reqFiletype === 'tif'){
+            filetype = 'zip'
+        }
+
         let s2mean = s2.map(function (image) {
             var clipped = ee.Image(image).clip(aoi)
             var mean = clipped.reduceRegion({
@@ -165,7 +172,7 @@ module.exports = (req, res, next) => {
                         cloudcover: image.properties['CLOUDY_PIXEL_ERCENTAGE'],
                         date: format(new Date(time), 'YYYY-MM-DD'),
                         time: image.properties['system:time_start'],
-                        url: `${process.env.ROOT_URL}/image/${lng}/${lat}/${image.properties['system:index']}-${bufferHex}.png`
+                        url: `${process.env.ROOT_URL}/image/${lng}/${lat}/${image.properties['system:index']}-${bufferHex}.${filetype}`
                     }
                 })
             }
