@@ -46,6 +46,7 @@ module.exports = (req, res, next) => {
                     status: 400,
                     message: "Please provide three bands, or remove the bands parameter for truecolor rgb."
                 })
+                return
             }
         }
 
